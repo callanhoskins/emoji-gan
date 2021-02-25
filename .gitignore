@@ -2,3 +2,5 @@ emoji_challenge
 resized_emoji_challenge
 .idea/
 .ipynb_checkpoints/
+**/**.png
+**.jpg
