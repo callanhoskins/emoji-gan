@@ -4,3 +4,4 @@ resized_emoji_challenge
 .ipynb_checkpoints/
 **/**.png
 **.jpg
+__pycache__/
