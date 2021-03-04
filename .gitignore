@@ -5,3 +5,9 @@ resized_emoji_challenge
 **/**.png
 **.jpg
 __pycache__/
+Self-Attention-GAN/image/
+Self-Attention-GAN/logs/
+Self-Attention-GAN/samples/
+Self-Attention-GAN/models/
+Self-Attention-GAN/attn/
+Self-Attention-GAN/__pycache__/
