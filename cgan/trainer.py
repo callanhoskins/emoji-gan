@@ -81,7 +81,7 @@ class Trainer(object):
         model_save_step = int(self.model_save_step * step_per_epoch)
 
         # Fixed input for debugging
-        fixed_z = tensor2var(torch.randn(self.batch_size, self.z_dim))
+        # fixed_z = tensor2var(torch.randn(self.batch_size, self.z_dim))
 
         # Start with trained model
         if self.pretrained_model:
@@ -195,7 +195,7 @@ class Trainer(object):
 
             # Sample images
             if (step + 1) % self.sample_step == 0:
-                fake_images, _, _ = self.G(fixed_z)
+                # fake_images, _, _ = self.G(fixed_z)
                 save_image(denorm(fake_images.data),
                            os.path.join(self.sample_path, '{}_fake.png'.format(step + 1)))
 
