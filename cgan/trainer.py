@@ -135,21 +135,18 @@ class Trainer(object):
                 fake_images, _, _ = self.G(noise_and_labels)
                 fake_image_and_labels = combine_vectors(fake_images.detach(), image_one_hot_labels)
                 d_out_fake, _, _ = self.D(fake_image_and_labels)
+                real_image_and_labels = combine_vectors(real_images, image_one_hot_labels)
+                d_out_real, _, _ = self.D(real_image_and_labels)
+
                 if self.adv_loss == 'wgan-gp':
                     d_loss_fake = d_out_fake.mean()
-                elif self.adv_loss == 'hinge':
-                    d_loss_fake = torch.nn.ReLU()(1.0 + d_out_fake).mean()
-                # elif self.adv_loss == 'bce':
-
-
-                real_image_and_labels = combine_vectors(real_images, image_one_hot_labels)
-                d_out_real, dr1, dr2 = self.D(real_image_and_labels)
-                if self.adv_loss == 'wgan-gp':
                     d_loss_real = - torch.mean(d_out_real)
                 elif self.adv_loss == 'hinge':
+                    d_loss_fake = torch.nn.ReLU()(1.0 + d_out_fake).mean()
                     d_loss_real = torch.nn.ReLU()(1.0 - d_out_real).mean()
-                # elif self.adv_loss == 'bce':
-
+                elif self.adv_loss == 'bce':
+                    d_loss_fake = self.criterion(d_out_fake, torch.zeros_like(d_out_fake))
+                    d_loss_real = self.criterion(d_out_real, torch.ones_like(d_out_real))
 
                 # Backward + Optimize
                 d_loss = d_loss_real + d_loss_fake
@@ -197,6 +194,8 @@ class Trainer(object):
                     g_loss_fake = - g_out_fake.mean()
                 elif self.adv_loss == 'hinge':
                     g_loss_fake = - g_out_fake.mean()
+                elif self.adv_loss == 'bce':
+                    g_loss_fake = self.criterion(g_out_fake, torch.ones_like(g_out_fake))
 
                 # self.reset_grad()
                 g_loss_fake.backward()
@@ -206,7 +205,7 @@ class Trainer(object):
                 if (cur_step + 1) % self.log_step == 0:
                     elapsed = time.time() - start_time
                     elapsed = str(datetime.timedelta(seconds=elapsed))
-                    print("Elapsed [{}], Step [{}], d_loss_fake: {:.4f}, d_loss_real: {:.4f},"
+                    print("Elapsed [{}], Step {}, d_loss_fake: {:.4f}, d_loss_real: {:.4f},"
                           " ave_gamma_l3: {:.4f}, ave_gamma_l4: {:.4f}".
                           format(elapsed, cur_step + 1, d_loss_fake.data, d_loss_real.data,
                                  self.G.attn1.gamma.mean().data, self.G.attn2.gamma.mean().data))
@@ -241,7 +240,8 @@ class Trainer(object):
         self.g_optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, self.G.parameters()), self.g_lr, [self.beta1, self.beta2])
         self.d_optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, self.D.parameters()), self.d_lr, [self.beta1, self.beta2])
 
-        # self.c_loss = torch.nn.CrossEntropyLoss()
+        if self.adv_loss == 'bce':
+            self.criterion = torch.nn.CrossEntropyLoss()
 
         # print networks
         # print(self.G)
