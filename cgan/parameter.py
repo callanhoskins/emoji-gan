@@ -5,7 +5,7 @@ def get_parameters():
 
     # Model hyper-parameters
     parser.add_argument('--model', type=str, default='sagan', choices=['sagan', 'qgan'])
-    parser.add_argument('--adv_loss', type=str, default='hinge', choices=['wgan-gp', 'hinge'])
+    parser.add_argument('--adv_loss', type=str, default='hinge', choices=['wgan-gp', 'hinge', 'bce'])
     parser.add_argument('--name', type=str, default='sagan')
     parser.add_argument('--image_size', type=int, default=64)
     ## TODO: What is g_num?

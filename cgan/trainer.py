@@ -6,6 +6,18 @@ from torchvision.utils import save_image
 
 from model import Generator, Discriminator
 from utils import *
+from tqdm import tqdm
+
+
+def weights_init(m):
+    if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
+        try:
+            torch.nn.init.xavier_uniform_(m.weight)
+        except:
+            pass
+    if isinstance(m, nn.BatchNorm2d):
+        torch.nn.init.normal_(m.weight, 0.0, 0.02)
+        torch.nn.init.constant_(m.bias, 0)
 
 
 class Trainer(object):
@@ -76,7 +88,7 @@ class Trainer(object):
 
     def train(self):
         # Data iterator
-        data_iter = iter(self.data_loader)
+        # data_iter = iter(self.data_loader)
         step_per_epoch = len(self.data_loader)
         model_save_step = int(self.model_save_step * step_per_epoch)
 
@@ -94,122 +106,131 @@ class Trainer(object):
         for step in range(start, self.total_step):
 
             # ================== Train D ================== #
-            self.D.train()
-            self.G.train()
+            # self.D.train()
+            # self.G.train()
 
-            try:
-                real_images, labels = next(data_iter)
-            except:
-                data_iter = iter(self.data_loader)
-                real_images, labels = next(data_iter)
+            for real_images, labels in self.data_loader:
+
+            # try:
+            #     real_images, labels = next(data_iter)
+            # except:
+            #     data_iter = iter(self.data_loader)
+            #     real_images, labels = next(data_iter)
 
             # Compute loss with real images
             # dr1, dr2, df1, df2, gf1, gf2 are attention scores
-            real_images = tensor2var(real_images)
-            one_hot_labels = get_one_hot_labels(labels.to(self.device), self.n_classes)
-            image_one_hot_labels = one_hot_labels[:, :, None, None]
-            image_one_hot_labels = image_one_hot_labels.repeat(1, 1, self.image_size, self.image_size)
+                real_images = tensor2var(real_images)
+                one_hot_labels = get_one_hot_labels(labels.to(self.device), self.n_classes)
+                image_one_hot_labels = one_hot_labels[:, :, None, None]
+                image_one_hot_labels = image_one_hot_labels.repeat(1, 1, self.image_size, self.image_size)
 
-            self.D.zero_grad()
+                self.D.zero_grad()
 
-            # apply Gumbel Softmax
-            # z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
-            z = torch.rand(real_images.size(0), self.z_dim, device=self.device)
-            # Combine the noise vectors and the one-hot labels for the generator
-            noise_and_labels = combine_vectors(z, one_hot_labels)
-            fake_images, _, _ = self.G(noise_and_labels)
-            fake_image_and_labels = combine_vectors(fake_images.detach(), image_one_hot_labels)
-            d_out_fake, _, _ = self.D(fake_image_and_labels)
-            if self.adv_loss == 'wgan-gp':
-                d_loss_fake = d_out_fake.mean()
-            elif self.adv_loss == 'hinge':
-                d_loss_fake = torch.nn.ReLU()(1.0 + d_out_fake).mean()
+                # apply Gumbel Softmax
+                # z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
+                z = torch.rand(real_images.size(0), self.z_dim, device=self.device)
+                # Combine the noise vectors and the one-hot labels for the generator
+                noise_and_labels = combine_vectors(z, one_hot_labels)
+                fake_images, _, _ = self.G(noise_and_labels)
+                fake_image_and_labels = combine_vectors(fake_images.detach(), image_one_hot_labels)
+                d_out_fake, _, _ = self.D(fake_image_and_labels)
+                if self.adv_loss == 'wgan-gp':
+                    d_loss_fake = d_out_fake.mean()
+                elif self.adv_loss == 'hinge':
+                    d_loss_fake = torch.nn.ReLU()(1.0 + d_out_fake).mean()
+                # elif self.adv_loss == 'bce':
 
-            real_image_and_labels = combine_vectors(real_images, image_one_hot_labels)
-            d_out_real, dr1, dr2 = self.D(real_image_and_labels)
-            if self.adv_loss == 'wgan-gp':
-                d_loss_real = - torch.mean(d_out_real)
-            elif self.adv_loss == 'hinge':
-                d_loss_real = torch.nn.ReLU()(1.0 - d_out_real).mean()
 
-            # Backward + Optimize
-            d_loss = d_loss_real + d_loss_fake
-            # self.reset_grad()
-            d_loss.backward()
-            self.d_optimizer.step()
+                real_image_and_labels = combine_vectors(real_images, image_one_hot_labels)
+                d_out_real, dr1, dr2 = self.D(real_image_and_labels)
+                if self.adv_loss == 'wgan-gp':
+                    d_loss_real = - torch.mean(d_out_real)
+                elif self.adv_loss == 'hinge':
+                    d_loss_real = torch.nn.ReLU()(1.0 - d_out_real).mean()
+                # elif self.adv_loss == 'bce':
 
-            if self.adv_loss == 'wgan-gp':
-                # Compute gradient penalty
-                alpha = torch.rand(real_images.size(0), 1, 1, 1).to(self.device).expand_as(real_images)
-                interpolated = Variable(alpha * real_images.data + (1 - alpha) * fake_images.data, requires_grad=True)
-                out, _, _ = self.D(interpolated)
-
-                grad = torch.autograd.grad(outputs=out,
-                                           inputs=interpolated,
-                                           grad_outputs=torch.ones(out.size()).to(self.device),
-                                           retain_graph=True,
-                                           create_graph=True,
-                                           only_inputs=True)[0]
-
-                grad = grad.view(grad.size(0), -1)
-                grad_l2norm = torch.sqrt(torch.sum(grad ** 2, dim=1))
-                d_loss_gp = torch.mean((grad_l2norm - 1) ** 2)
 
                 # Backward + Optimize
-                d_loss = self.lambda_gp * d_loss_gp
-
-                self.reset_grad()
+                d_loss = d_loss_real + d_loss_fake
+                # self.reset_grad()
                 d_loss.backward()
                 self.d_optimizer.step()
 
-            # ================== Train G and gumbel ================== #
-            self.G.zero_grad()
+                if self.adv_loss == 'wgan-gp':
+                    # Compute gradient penalty
+                    alpha = torch.rand(real_images.size(0), 1, 1, 1).to(self.device).expand_as(real_images)
+                    interpolated = Variable(alpha * real_images.data + (1 - alpha) * fake_images.data, requires_grad=True)
+                    out, _, _ = self.D(interpolated)
 
-            # Create random noise
-            z = torch.rand(real_images.size(0), self.z_dim, device=self.device)
-            # Combine the noise vectors and the one-hot labels for the generator
-            noise_and_labels = combine_vectors(z, one_hot_labels)
-            fake_images, _, _ = self.G(noise_and_labels)
-            fake_image_and_labels = combine_vectors(fake_images.detach(), image_one_hot_labels)
+                    grad = torch.autograd.grad(outputs=out,
+                                               inputs=interpolated,
+                                               grad_outputs=torch.ones(out.size()).to(self.device),
+                                               retain_graph=True,
+                                               create_graph=True,
+                                               only_inputs=True)[0]
 
-            # Compute loss with fake images
-            g_out_fake, _, _ = self.D(fake_image_and_labels)
-            if self.adv_loss == 'wgan-gp':
-                g_loss_fake = - g_out_fake.mean()
-            elif self.adv_loss == 'hinge':
-                g_loss_fake = - g_out_fake.mean()
+                    grad = grad.view(grad.size(0), -1)
+                    grad_l2norm = torch.sqrt(torch.sum(grad ** 2, dim=1))
+                    d_loss_gp = torch.mean((grad_l2norm - 1) ** 2)
 
-            # self.reset_grad()
-            g_loss_fake.backward()
-            self.g_optimizer.step()
+                    # Backward + Optimize
+                    d_loss = self.lambda_gp * d_loss_gp
 
-            # Print out log info
-            if (step + 1) % self.log_step == 0:
-                elapsed = time.time() - start_time
-                elapsed = str(datetime.timedelta(seconds=elapsed))
-                print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_out_real: {:.4f}, "
-                      " ave_gamma_l3: {:.4f}, ave_gamma_l4: {:.4f}".
-                      format(elapsed, step + 1, self.total_step, (step + 1),
-                             self.total_step , d_loss_real.data,
-                             self.G.attn1.gamma.mean().data, self.G.attn2.gamma.mean().data))
+                    self.reset_grad()
+                    d_loss.backward()
+                    self.d_optimizer.step()
 
-            # Sample images
-            if (step + 1) % self.sample_step == 0:
-                # fake_images, _, _ = self.G(fixed_z)
-                save_image(denorm(fake_images.data),
-                           os.path.join(self.sample_path, '{}_fake.png'.format(step + 1)))
+                # ================== Train G and gumbel ================== #
+                self.G.zero_grad()
 
-            if (step+1) % model_save_step == 0:
-                torch.save(self.G.state_dict(),
-                           os.path.join(self.model_save_path, '{}_G.pth'.format(step + 1)))
-                torch.save(self.D.state_dict(),
-                           os.path.join(self.model_save_path, '{}_D.pth'.format(step + 1)))
+                # Create random noise
+                z = torch.rand(real_images.size(0), self.z_dim, device=self.device)
+                # Combine the noise vectors and the one-hot labels for the generator
+                noise_and_labels = combine_vectors(z, one_hot_labels)
+                fake_images, _, _ = self.G(noise_and_labels)
+                fake_image_and_labels = combine_vectors(fake_images.detach(), image_one_hot_labels)
+
+                # Compute loss with fake images
+                g_out_fake, _, _ = self.D(fake_image_and_labels)
+                if self.adv_loss == 'wgan-gp':
+                    g_loss_fake = - g_out_fake.mean()
+                elif self.adv_loss == 'hinge':
+                    g_loss_fake = - g_out_fake.mean()
+
+                # self.reset_grad()
+                g_loss_fake.backward()
+                self.g_optimizer.step()
+
+                # Print out log info
+                if (step + 1) % self.log_step == 0:
+                    elapsed = time.time() - start_time
+                    elapsed = str(datetime.timedelta(seconds=elapsed))
+                    print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_out_fake: {:.4f}, "
+                          " ave_gamma_l3: {:.4f}, ave_gamma_l4: {:.4f}".
+                          format(elapsed, step + 1, self.total_step, (step + 1),
+                                 self.total_step, d_loss_fake.data,
+                                 self.G.attn1.gamma.mean().data, self.G.attn2.gamma.mean().data))
+
+                # Sample images
+                if (step + 1) % self.sample_step == 0:
+                    # fake_images, _, _ = self.G(fixed_z)
+                    save_image(denorm(fake_images.data),
+                               os.path.join(self.sample_path, '{}_fake.png'.format(step + 1)))
+
+                if (step+1) % model_save_step == 0:
+                    torch.save(self.G.state_dict(),
+                               os.path.join(self.model_save_path, '{}_G.pth'.format(step + 1)))
+                    torch.save(self.D.state_dict(),
+                               os.path.join(self.model_save_path, '{}_D.pth'.format(step + 1)))
 
     def build_model(self):
         g_input_dim = self.z_dim + self.n_classes
         self.G = Generator(self.image_size, g_input_dim, self.g_conv_dim).to(self.device)
         d_im_chan = self.im_chan + self.n_classes
         self.D = Discriminator(d_im_chan, self.d_conv_dim).to(self.device)
+        # Weight initialization
+        self.G.apply(weights_init)
+        self.D.apply(weights_init)
         if self.parallel:
             self.G = nn.DataParallel(self.G)
             self.D = nn.DataParallel(self.D)
