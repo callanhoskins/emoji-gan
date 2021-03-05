@@ -220,7 +220,7 @@ class Trainer(object):
                     torch.save(self.G.state_dict(),
                                os.path.join(self.model_save_path, '{}_G.pth'.format(cur_step + 1)))
                     torch.save(self.D.state_dict(),
-                               os.path.join(self.model_save_path, '{}_D.pth'.format(step + 1)))
+                               os.path.join(self.model_save_path, '{}_D.pth'.format(cur_step + 1)))
 
                 cur_step += 1
 
