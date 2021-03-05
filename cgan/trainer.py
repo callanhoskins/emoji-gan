@@ -206,10 +206,9 @@ class Trainer(object):
                 if (cur_step + 1) % self.log_step == 0:
                     elapsed = time.time() - start_time
                     elapsed = str(datetime.timedelta(seconds=elapsed))
-                    print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_out_fake: {:.4f}, "
+                    print("Elapsed [{}], Step [{}], d_loss_fake: {:.4f}, d_loss_real: {:.4f},"
                           " ave_gamma_l3: {:.4f}, ave_gamma_l4: {:.4f}".
-                          format(elapsed, cur_step + 1, self.total_step, (cur_step + 1),
-                                 self.total_step, d_loss_fake.data,
+                          format(elapsed, cur_step + 1, d_loss_fake.data, d_loss_real.data,
                                  self.G.attn1.gamma.mean().data, self.G.attn2.gamma.mean().data))
 
                 # Sample images
