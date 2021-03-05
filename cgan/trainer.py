@@ -107,8 +107,8 @@ class Trainer(object):
         for epoch in range(self.n_epoch):
 
             # ================== Train D ================== #
-            # self.D.train()
-            # self.G.train()
+            self.D.train()
+            self.G.train()
 
             for real_images, labels in self.data_loader:
 
@@ -205,9 +205,9 @@ class Trainer(object):
                 if (cur_step + 1) % self.log_step == 0:
                     elapsed = time.time() - start_time
                     elapsed = str(datetime.timedelta(seconds=elapsed))
-                    print("Elapsed [{}], Step {}, d_loss_fake: {:.4f}, d_loss_real: {:.4f},"
+                    print("Elapsed [{}], Step {}, d_loss: {:.4f}, g_loss: {:.4f},"
                           " ave_gamma_l3: {:.4f}, ave_gamma_l4: {:.4f}".
-                          format(elapsed, cur_step + 1, d_loss_fake.data, d_loss_real.data,
+                          format(elapsed, cur_step + 1, d_loss.data, g_loss_fake.data,
                                  self.G.attn1.gamma.mean().data, self.G.attn2.gamma.mean().data))
 
                 # Sample images
