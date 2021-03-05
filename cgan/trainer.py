@@ -181,12 +181,12 @@ class Trainer(object):
                 # ================== Train G and gumbel ================== #
                 # self.G.zero_grad()
 
-                # Create random noise
-                z = torch.rand(real_images.size(0), self.z_dim, device=self.device)
-                # Combine the noise vectors and the one-hot labels for the generator
-                noise_and_labels = combine_vectors(z, one_hot_labels)
-                fake_images, _, _ = self.G(noise_and_labels)
-                fake_image_and_labels = combine_vectors(fake_images.detach(), image_one_hot_labels)
+                # # Create random noise
+                # z = torch.rand(real_images.size(0), self.z_dim, device=self.device)
+                # # Combine the noise vectors and the one-hot labels for the generator
+                # noise_and_labels = combine_vectors(z, one_hot_labels)
+                # fake_images, _, _ = self.G(noise_and_labels)
+                # fake_image_and_labels = combine_vectors(fake_images.detach(), image_one_hot_labels)
 
                 # Compute loss with fake images
                 g_out_fake, _, _ = self.D(fake_image_and_labels)
@@ -213,6 +213,8 @@ class Trainer(object):
                 # Sample images
                 if (cur_step + 1) % self.sample_step == 0:
                     # fake_images, _, _ = self.G(fixed_z)
+                    save_image(denorm(real_images.data),
+                               os.path.join(self.sample_path, '{}_real.png'.format(cur_step + 1)))
                     save_image(denorm(fake_images.data),
                                os.path.join(self.sample_path, '{}_fake.png'.format(cur_step + 1)))
 
