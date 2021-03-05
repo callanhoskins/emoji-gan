@@ -10,17 +10,17 @@ if __name__ == '__main__':
 
     data_loader = Data_Loader(config.image_path, config.image_size, config.batch_size, True)
 
-    save_dir = get_save_dir(config.save_dir, config.name)
-    log = get_logger(save_dir, config.name)
-    tbx = SummaryWriter(save_dir)
+    config.save_dir = get_save_dir(config.save_dir, config.name)
+    log = get_logger(config.save_dir, config.name)
+    tbx = SummaryWriter(config.save_dir)
 
     # Set random seed
     log.info(f'Using random seed {config.seed}...')
     set_all_seeds(config.seed)
 
-    make_folder(save_dir, 'log')
-    make_folder(save_dir, 'model')
-    make_folder(save_dir, 'samples')
+    make_folder(config.save_dir, 'log')
+    make_folder(config.save_dir, 'model')
+    make_folder(config.save_dir, 'samples')
     # make_folder(config.save_dir, 'attn')
 
     trainer = Trainer(data_loader.loader(), config)

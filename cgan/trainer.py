@@ -50,7 +50,7 @@ class Trainer(object):
         # self.use_tensorboard = config.use_tensorboard
         self.image_path = config.image_path
         self.save_dir = config.save_dir
-        self.log_path = os.path.join(config.save_dir, 'log')
+        # self.log_path = os.path.join(config.save_dir, 'log')
         self.model_save_path = os.path.join(config.save_dir, 'model')
         self.sample_path = os.path.join(config.save_dir, 'samples')
         self.log_step = config.log_step
