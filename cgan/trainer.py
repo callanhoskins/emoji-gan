@@ -208,7 +208,7 @@ class Trainer(object):
                     elapsed = str(datetime.timedelta(seconds=elapsed))
                     print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_out_fake: {:.4f}, "
                           " ave_gamma_l3: {:.4f}, ave_gamma_l4: {:.4f}".
-                          format(elapsed, step + 1, self.total_step, (step + 1),
+                          format(elapsed, cur_step + 1, self.total_step, (cur_step + 1),
                                  self.total_step, d_loss_fake.data,
                                  self.G.attn1.gamma.mean().data, self.G.attn2.gamma.mean().data))
 
@@ -216,11 +216,11 @@ class Trainer(object):
                 if (cur_step + 1) % self.sample_step == 0:
                     # fake_images, _, _ = self.G(fixed_z)
                     save_image(denorm(fake_images.data),
-                               os.path.join(self.sample_path, '{}_fake.png'.format(step + 1)))
+                               os.path.join(self.sample_path, '{}_fake.png'.format(cur_step + 1)))
 
                 if (cur_step + 1) % model_save_step == 0:
                     torch.save(self.G.state_dict(),
-                               os.path.join(self.model_save_path, '{}_G.pth'.format(step + 1)))
+                               os.path.join(self.model_save_path, '{}_G.pth'.format(cur_step + 1)))
                     torch.save(self.D.state_dict(),
                                os.path.join(self.model_save_path, '{}_D.pth'.format(step + 1)))
 
