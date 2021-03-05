@@ -152,6 +152,8 @@ class Trainer(object):
 
                     # Backward + Optimize
                     d_loss = d_loss_real + d_loss_fake
+                    if self.adv_loss == 'bce':
+                        d_loss /= 2
                     # self.reset_grad()
                     d_loss.backward()
                     self.d_optimizer.step()
