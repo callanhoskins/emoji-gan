@@ -138,7 +138,7 @@ class Trainer(object):
                     real_image_and_labels = combine_vectors(real_images, image_one_hot_labels)
                     d_out_real, _, _ = self.D(real_image_and_labels)
 
-                    self.D.zero_grad()
+                    self.d_optimizer.zero_grad()
 
                     if self.adv_loss == 'wgan-gp':
                         d_loss_fake = d_out_fake.mean()
@@ -159,7 +159,7 @@ class Trainer(object):
                     self.d_optimizer.step()
 
                     if self.adv_loss == 'wgan-gp':
-                        self.D.zero_grad()
+                        self.d_optimizer.zero_grad()
 
                         # Compute gradient penalty
                         alpha = torch.rand(real_images.size(0), 1, 1, 1).to(self.device).expand_as(real_image_and_labels)
@@ -195,7 +195,7 @@ class Trainer(object):
                 g_out_fake, _, _ = self.D(fake_image_and_labels)
 
                 # Compute loss with fake images
-                self.G.zero_grad()
+                self.g_optimizer.zero_grad()
                 if self.adv_loss == 'wgan-gp':
                     g_loss_fake = - g_out_fake.mean()
                 elif self.adv_loss == 'hinge':
