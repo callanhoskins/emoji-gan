@@ -5,7 +5,7 @@
 We use `conda` to manage our dependencies. Create an environment called `squad` with the required dependencies and activate it with. 
    ```
    conda env create -f environment.yml
-   conda activate squad
+   conda activate emoji-gan
    ```
 Good to go!
 
@@ -15,7 +15,7 @@ To clean the dataset, we crop the original video frames to include *only* faces 
 
 Run image preprocessing with the following commands: 
    ```
-   conda activate squad
+   conda activate emoji-gan
    python image_preprocess.py
    ```
 Image preprocessing took about 10 hours on a `gd4n.xlarge` AWS instance. 
