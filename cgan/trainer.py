@@ -125,7 +125,7 @@ class Trainer(object):
                 image_one_hot_labels = one_hot_labels[:, :, None, None]
                 image_one_hot_labels = image_one_hot_labels.repeat(1, 1, self.image_size, self.image_size)
 
-                self.D.zero_grad()
+                # self.D.zero_grad()
 
                 # apply Gumbel Softmax
                 # z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
@@ -150,14 +150,14 @@ class Trainer(object):
 
                 # Backward + Optimize
                 d_loss = d_loss_real + d_loss_fake
-                # self.reset_grad()
+                self.reset_grad()
                 d_loss.backward()
                 self.d_optimizer.step()
 
                 if self.adv_loss == 'wgan-gp':
                     # Compute gradient penalty
-                    alpha = torch.rand(real_images.size(0), 1, 1, 1).to(self.device).expand_as(real_images)
-                    interpolated = Variable(alpha * real_images.data + (1 - alpha) * fake_images.data, requires_grad=True)
+                    alpha = torch.rand(real_images.size(0), 1, 1, 1).to(self.device).expand_as(real_image_and_labels)
+                    interpolated = Variable(alpha * real_image_and_labels.data + (1 - alpha) * fake_image_and_labels.data, requires_grad=True)
                     out, _, _ = self.D(interpolated)
 
                     grad = torch.autograd.grad(outputs=out,
@@ -179,7 +179,7 @@ class Trainer(object):
                     self.d_optimizer.step()
 
                 # ================== Train G and gumbel ================== #
-                self.G.zero_grad()
+                # self.G.zero_grad()
 
                 # Create random noise
                 z = torch.rand(real_images.size(0), self.z_dim, device=self.device)
@@ -197,7 +197,7 @@ class Trainer(object):
                 elif self.adv_loss == 'bce':
                     g_loss_fake = self.criterion(g_out_fake, torch.ones_like(g_out_fake))
 
-                # self.reset_grad()
+                self.reset_grad()
                 g_loss_fake.backward()
                 self.g_optimizer.step()
 
@@ -259,9 +259,9 @@ class Trainer(object):
             self.model_save_path, '{}_D.pth'.format(self.pretrained_model))))
         print('loaded trained models (step: {})..!'.format(self.pretrained_model))
 
-    # def reset_grad(self):
-    #     self.d_optimizer.zero_grad()
-    #     self.g_optimizer.zero_grad()
+    def reset_grad(self):
+        self.d_optimizer.zero_grad()
+        self.g_optimizer.zero_grad()
 
     def save_sample(self, data_iter):
         real_images, _ = next(data_iter)
