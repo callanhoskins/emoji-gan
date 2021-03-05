@@ -47,8 +47,8 @@ class Trainer(object):
         self.parallel = config.parallel
 
         self.lambda_gp = config.lambda_gp
-        self.total_step = config.total_step
-        self.d_iters = config.d_iters
+        self.n_epoch = config.n_epoch
+        # self.d_iters = config.d_iters
         self.batch_size = config.batch_size
         self.num_workers = config.num_workers
         self.g_lr = config.g_lr
@@ -89,6 +89,7 @@ class Trainer(object):
     def train(self):
         # Data iterator
         # data_iter = iter(self.data_loader)
+        cur_step = 0
         step_per_epoch = len(self.data_loader)
         model_save_step = int(self.model_save_step * step_per_epoch)
 
@@ -103,7 +104,7 @@ class Trainer(object):
 
         # Start time
         start_time = time.time()
-        for step in range(start, self.total_step):
+        for epoch in range(self.n_epoch):
 
             # ================== Train D ================== #
             # self.D.train()
@@ -202,7 +203,7 @@ class Trainer(object):
                 self.g_optimizer.step()
 
                 # Print out log info
-                if (step + 1) % self.log_step == 0:
+                if (cur_step + 1) % self.log_step == 0:
                     elapsed = time.time() - start_time
                     elapsed = str(datetime.timedelta(seconds=elapsed))
                     print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_out_fake: {:.4f}, "
@@ -212,16 +213,18 @@ class Trainer(object):
                                  self.G.attn1.gamma.mean().data, self.G.attn2.gamma.mean().data))
 
                 # Sample images
-                if (step + 1) % self.sample_step == 0:
+                if (cur_step + 1) % self.sample_step == 0:
                     # fake_images, _, _ = self.G(fixed_z)
                     save_image(denorm(fake_images.data),
                                os.path.join(self.sample_path, '{}_fake.png'.format(step + 1)))
 
-                if (step+1) % model_save_step == 0:
+                if (cur_step + 1) % model_save_step == 0:
                     torch.save(self.G.state_dict(),
                                os.path.join(self.model_save_path, '{}_G.pth'.format(step + 1)))
                     torch.save(self.D.state_dict(),
                                os.path.join(self.model_save_path, '{}_D.pth'.format(step + 1)))
+
+                cur_step += 1
 
     def build_model(self):
         g_input_dim = self.z_dim + self.n_classes
