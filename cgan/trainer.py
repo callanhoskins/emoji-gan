@@ -241,7 +241,7 @@ class Trainer(object):
         self.d_optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, self.D.parameters()), self.d_lr, [self.beta1, self.beta2])
 
         if self.adv_loss == 'bce':
-            self.criterion = torch.nn.CrossEntropyLoss()
+            self.criterion = torch.nn.BCEWithLogitsLoss()
 
         # print networks
         # print(self.G)
