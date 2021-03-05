@@ -22,8 +22,7 @@ def get_parameters():
                         default=224,
                         help='Random seed for reproducibility.')
     parser.add_argument('--n_epoch', type=int, default=30)
-    ## TODO: What is d_iters?
-    # parser.add_argument('--d_iters', type=float, default=5)
+    parser.add_argument('--d_iters', type=float, default=5)
     parser.add_argument('--batch_size', type=int, default=64)
     parser.add_argument('--num_workers', type=int, default=2)
     parser.add_argument('--g_lr', type=float, default=0.0001)
