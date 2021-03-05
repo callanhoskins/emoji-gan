@@ -54,7 +54,7 @@ class Generator(nn.Module):
         # Input: (N, z_dim)
 
         self.l1 = nn.Sequential(
-            SpectralNorm(nn.ConvTranspose2d(z_dim, conv_dim * mult, 4)),    # (N, conv_dim * mult,
+            SpectralNorm(nn.ConvTranspose2d(z_dim, conv_dim * mult, 4)),
             nn.BatchNorm2d(conv_dim * mult),
             nn.ReLU(),
         )

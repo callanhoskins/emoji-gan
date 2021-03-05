@@ -127,11 +127,9 @@ class Trainer(object):
                     image_one_hot_labels = one_hot_labels[:, :, None, None]
                     image_one_hot_labels = image_one_hot_labels.repeat(1, 1, self.image_size, self.image_size)
 
-                    # self.D.zero_grad()
-
                     # apply Gumbel Softmax
-                    # z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
-                    z = torch.rand(real_images.size(0), self.z_dim, device=self.device)
+                    z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
+                    # z = torch.rand(real_images.size(0), self.z_dim, device=self.device)
                     # Combine the noise vectors and the one-hot labels for the generator
                     noise_and_labels = combine_vectors(z, one_hot_labels)
                     fake_images, _, _ = self.G(noise_and_labels)
@@ -139,6 +137,8 @@ class Trainer(object):
                     d_out_fake, _, _ = self.D(fake_image_and_labels)
                     real_image_and_labels = combine_vectors(real_images, image_one_hot_labels)
                     d_out_real, _, _ = self.D(real_image_and_labels)
+
+                    self.D.zero_grad()
 
                     if self.adv_loss == 'wgan-gp':
                         d_loss_fake = d_out_fake.mean()
@@ -152,11 +152,13 @@ class Trainer(object):
 
                     # Backward + Optimize
                     d_loss = d_loss_real + d_loss_fake
-                    self.reset_grad()
+                    # self.reset_grad()
                     d_loss.backward()
                     self.d_optimizer.step()
 
                     if self.adv_loss == 'wgan-gp':
+                        self.D.zero_grad()
+
                         # Compute gradient penalty
                         alpha = torch.rand(real_images.size(0), 1, 1, 1).to(self.device).expand_as(real_image_and_labels)
                         interpolated = Variable(alpha * real_image_and_labels.data + (1 - alpha) * fake_image_and_labels.data, requires_grad=True)
@@ -176,12 +178,11 @@ class Trainer(object):
                         # Backward + Optimize
                         d_loss = self.lambda_gp * d_loss_gp
 
-                        self.reset_grad()
+                        # self.reset_grad()
                         d_loss.backward()
                         self.d_optimizer.step()
 
                 # ================== Train G and gumbel ================== #
-                # self.G.zero_grad()
 
                 # # Create random noise
                 # z = torch.rand(real_images.size(0), self.z_dim, device=self.device)
@@ -189,9 +190,10 @@ class Trainer(object):
                 # noise_and_labels = combine_vectors(z, one_hot_labels)
                 # fake_images, _, _ = self.G(noise_and_labels)
                 # fake_image_and_labels = combine_vectors(fake_images.detach(), image_one_hot_labels)
+                g_out_fake, _, _ = self.D(fake_image_and_labels)
 
                 # Compute loss with fake images
-                g_out_fake, _, _ = self.D(fake_image_and_labels)
+                self.G.zero_grad()
                 if self.adv_loss == 'wgan-gp':
                     g_loss_fake = - g_out_fake.mean()
                 elif self.adv_loss == 'hinge':
@@ -199,7 +201,7 @@ class Trainer(object):
                 elif self.adv_loss == 'bce':
                     g_loss_fake = self.criterion(g_out_fake, torch.ones_like(g_out_fake))
 
-                self.reset_grad()
+                # self.reset_grad()
                 g_loss_fake.backward()
                 self.g_optimizer.step()
 
