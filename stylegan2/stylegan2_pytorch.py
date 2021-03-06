@@ -27,8 +27,7 @@ from kornia.filters import filter2D
 
 import torchvision
 from torchvision import transforms
-from stylegan2_pytorch.version import __version__
-from stylegan2_pytorch.diff_augment import DiffAugment
+from diff_augment import DiffAugment
 
 from vector_quantize_pytorch import VectorQuantize
 from linear_attention_transformer import ImageLinearAttention

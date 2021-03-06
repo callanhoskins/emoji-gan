@@ -171,6 +171,7 @@ def train_from_folder(
         return
 
     world_size = torch.cuda.device_count()
+    print(world_size)
 
     if world_size == 1 or not multi_gpus:
         run_training(0, 1, model_args, data, load_from, new, num_train_steps, name, seed)
@@ -181,5 +182,4 @@ def train_from_folder(
         nprocs=world_size,
         join=True)
 
-def main():
-    fire.Fire(train_from_folder)
+fire.Fire(train_from_folder)
