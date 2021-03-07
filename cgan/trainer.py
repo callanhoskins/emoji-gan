@@ -205,7 +205,7 @@ class Trainer(object):
                 elif self.adv_loss == 'bce':
                     g_loss_fake = self.criterion(g_out_fake, torch.ones_like(g_out_fake))
 
-                print(g_loss_fake.shape)
+                print(g_loss_fake)
                 self.logger.add_scalar('g_loss/train', g_loss_fake, epoch)
                 # self.reset_grad()
                 g_loss_fake.backward()

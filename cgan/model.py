@@ -162,13 +162,13 @@ if __name__ == '__main__':
     image_path = '../resized_emoji_challenge'
 
     from data_loader import Data_Loader
-    data_loader = Data_Loader(True, image_path, image_size, batch_size).loader()
+    data_loader = Data_Loader(image_path, image_size, batch_size, True).loader()
     data_iter = iter(data_loader)
     real_images, labels = next(data_iter)
 
     from utils import *
     z = tensor2var(torch.randn(batch_size, z_dim))
-    one_hot_labels = get_one_hot_labels(labels, n_classes)
+    one_hot_labels = get_one_hot_labels(labels, n_classes).cuda()
     image_one_hot_labels = one_hot_labels[:, :, None, None]
     image_one_hot_labels = image_one_hot_labels.repeat(1, 1, image_size, image_size)
 
@@ -179,15 +179,18 @@ if __name__ == '__main__':
     D = Discriminator(im_chan + n_classes, d_conv_dim)
     print(D)
 
+    noise_and_labels = noise_and_labels.to('cpu')
+    print(f'noise_and_labels.shape: {noise_and_labels.shape}')
     fake_images, _, _ = G(noise_and_labels)
     # print(G(fixed_z))
 
     print('FAKE')
-    fake_image_and_labels = combine_vectors(fake_images.detach(), image_one_hot_labels)
+    fake_image_and_labels = combine_vectors(fake_images.detach().to('cpu'), image_one_hot_labels.to('cpu'))
+    print(f'fake_image_and_labels.shape {fake_image_and_labels.shape}')
     d_out_fake, _, _ = D(fake_image_and_labels)
     print(d_out_fake.shape)
 
     print("REAL")
-    real_image_and_labels = combine_vectors(real_images, image_one_hot_labels)
+    real_image_and_labels = combine_vectors(real_images, image_one_hot_labels.to('cpu'))
     d_out_real, _, _ = D(fake_image_and_labels)
     print(d_out_real.shape)
