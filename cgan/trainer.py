@@ -3,6 +3,7 @@ import datetime
 
 import torch.nn as nn
 from torchvision.utils import save_image
+from torch.utils.tensorboard import SummaryWriter
 
 from model import Generator, Discriminator
 from utils import *
@@ -59,10 +60,10 @@ class Trainer(object):
         self.pretrained_model = config.pretrained_model
 
         ## TODO: Implement Tensorboard logging
-        # self.use_tensorboard = config.use_tensorboard
+        self.use_tensorboard = config.use_tensorboard
         self.image_path = config.image_path
         self.save_dir = config.save_dir
-        # self.log_path = os.path.join(config.save_dir, 'log')
+        self.log_path = os.path.join(config.save_dir, 'log')
         self.model_save_path = os.path.join(config.save_dir, 'model')
         self.sample_path = os.path.join(config.save_dir, 'samples')
         self.log_step = config.log_step
@@ -72,8 +73,8 @@ class Trainer(object):
 
         self.build_model()
 
-        # if self.use_tensorboard:
-        #     self.build_tensorboard()
+        if self.use_tensorboard:
+            self.build_tensorboard()
 
         # Start with trained model
         if self.pretrained_model:
@@ -155,6 +156,7 @@ class Trainer(object):
                     if self.adv_loss == 'bce':
                         d_loss /= 2
                     # self.reset_grad()
+                    self.logger.add_scalar('d_loss/train', d_loss, epoch)
                     d_loss.backward()
                     self.d_optimizer.step()
 
@@ -203,6 +205,8 @@ class Trainer(object):
                 elif self.adv_loss == 'bce':
                     g_loss_fake = self.criterion(g_out_fake, torch.ones_like(g_out_fake))
 
+                print(g_loss_fake.shape)
+                self.logger.add_scalar('g_loss/train', g_loss_fake, epoch)
                 # self.reset_grad()
                 g_loss_fake.backward()
                 self.g_optimizer.step()
@@ -255,10 +259,8 @@ class Trainer(object):
         # print(self.G)
         # print(self.D)
 
-    # def build_tensorboard(self):
-    #     from logger import Logger
-    #     self.logger = Logger(self.log_path)
-    #     from torch.utils.tensorboard import SummaryWriter
+    def build_tensorboard(self):
+        self.logger = SummaryWriter(self.log_path)
 
     def load_pretrained_model(self):
         self.G.load_state_dict(torch.load(os.path.join(

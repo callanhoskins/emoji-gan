@@ -2,7 +2,7 @@ from parameter import get_parameters
 from utils import *
 from data_loader import Data_Loader
 from trainer import Trainer
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 if __name__ == '__main__':
     config = get_parameters()
@@ -12,7 +12,6 @@ if __name__ == '__main__':
 
     config.save_dir = get_save_dir(config.save_dir, config.name)
     log = get_logger(config.save_dir, config.name)
-    tbx = SummaryWriter(config.save_dir)
 
     # Set random seed
     log.info(f'Using random seed {config.seed}...')
