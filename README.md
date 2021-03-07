@@ -2,7 +2,7 @@
 
 ## Setup 
 
-We use `conda` to manage our dependencies. Create an environment called `squad` with the required dependencies and activate it with. 
+We use `conda` to manage our dependencies. Create an environment called `emoji-gan` with the required dependencies and activate it with. 
    ```
    conda env create -f environment.yml
    conda activate emoji-gan
