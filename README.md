@@ -2,7 +2,7 @@
 
 ## Setup 
 
-We use `conda` to manage our dependencies. Create an environment called `emoji-gan` with the required dependencies and activate it with. 
+We use `conda` to manage our dependencies. Create an environment called `emoji-gan` with the required dependencies and activate it with
    ```
    conda env create -n emoji-gan python==3.7
    pip install -r requirements.txt
@@ -21,7 +21,7 @@ Run image preprocessing with the following commands:
    ```
 Image preprocessing took about 10 hours on a `gd4n.xlarge` AWS instance. 
 
-Another option is to just ask chosk [a] stanford . edu or chloe [a] stanford . edu for the dataset!
+Another option is to just ask chosk [a] stanford . edu or chloehe [a] stanford . edu for the dataset!
 
 Either way, the processed dataset should be located in a folder called `emoji_challenge_resized_128_faces` for the models to run smoothly. 
 
