@@ -4,7 +4,8 @@
 
 We use `conda` to manage our dependencies. Create an environment called `emoji-gan` with the required dependencies and activate it with. 
    ```
-   conda env create -f environment.yml
+   conda env create -n emoji-gan python==3.7
+   pip install -r requirements.txt
    conda activate emoji-gan
    ```
 Good to go!
@@ -47,9 +48,9 @@ Run `tensorboard --log-dir PATH_TO_LOG` to see discriminator and generator loss 
 ## Running cSAGAN
 
    ```
-   conda activate squad
+   conda activate emoji-gan
    jupyter notebook
    ```
 Open `ip.ip.ip.ip:8888` in your browser (substitude `ip.ip.ip.ip` for the public IPv4 address of AWS instance), and enter password `Stanford!`. 
 
-Open `Conditional Self-Attention GAN.ipynb` and run all cells. 
+Open `Conditional Self-Attention GAN/Conditional Self-Attention GAN.ipynb` and run all cells. 
