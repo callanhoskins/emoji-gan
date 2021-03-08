@@ -5,8 +5,10 @@ resized_emoji_challenge/
 **/**.png
 **.jpg
 __pycache__/
+**/__pycache__/
 Self-Attention-GAN/
 SC-gan-tf/
 cgan/save/
 setup.sh
 **.png
+Conditional Self-Attention GAN/model_ckpt/
