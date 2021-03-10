@@ -62,9 +62,8 @@ class Self_Attn(nn.Module):
 class Generator(nn.Module):
     """Generator."""
 
-    def __init__(self, image_size=64, z_dim=128, conv_dim=64, skip_connections=False):
+    def __init__(self, image_size=64, z_dim=128, conv_dim=64):
         super(Generator, self).__init__()
-        self.skip_connections=skip_connections
         
         repeat_num = int(np.log2(image_size)) - 3   # 3
         mult = 2 ** repeat_num  # 8
@@ -109,22 +108,13 @@ class Generator(nn.Module):
 
     def forward(self, z):
         z = z.view(z.size(0), z.size(1), 1, 1)
-        if self.skip_connections:
-            out += self.l1(z) 
-            out += self.l2(out)
-            out += self.l3(out)
-            out, p1 = self.attn1(out)
-            out += self.l4(out)
-            out, p2 = self.attn2(out)
-            out += self.last(out)
-        else:
-            out = self.l1(z) 
-            out = self.l2(out)
-            out = self.l3(out)
-            out, p1 = self.attn1(out)
-            out = self.l4(out)
-            out, p2 = self.attn2(out)
-            out = self.last(out)
+        out = self.l1(z) 
+        out = self.l2(out)
+        out = self.l3(out)
+        out, p1 = self.attn1(out)
+        out = self.l4(out)
+        out, p2 = self.attn2(out)
+        out = self.last(out)
         return out
 
 
@@ -172,9 +162,9 @@ class Discriminator(nn.Module):
         out = self.l1(x)
         out = self.l2(out)
         out = self.l3(out)
-#         out, p1 = self.attn1(out)
+        out, p1 = self.attn1(out)
         out = self.l4(out)
-#         out, p2 = self.attn2(out)
+        out, p2 = self.attn2(out)
         out = self.last(out)
 
         return out.squeeze()
