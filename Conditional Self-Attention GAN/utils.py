@@ -1,5 +1,7 @@
 import torch
 import os
+import random
+import numpy as np
 from torch import nn
 from tqdm.auto import tqdm
 from torchvision import transforms
@@ -10,12 +12,14 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 from wgan_gp import *
 
+
 def set_all_seeds(seed):
-#     random.seed(seed)
-#     np.random.seed(seed)
+    random.seed(seed)
+    np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
+    
 def show_tensor_images(image_tensor, num_images=25, size=(3, 64, 64), nrow=5, show=True):
     '''
     Function for visualizing images: Given a tensor of images, number of images, and
@@ -28,6 +32,7 @@ def show_tensor_images(image_tensor, num_images=25, size=(3, 64, 64), nrow=5, sh
     if show:
         plt.show()
 
+        
 def get_noise(n_samples, input_dim, device='cpu'):
     '''
     Function for creating noise vectors: Given the dimensions (n_samples, input_dim)
@@ -39,6 +44,7 @@ def get_noise(n_samples, input_dim, device='cpu'):
     '''
     return torch.randn(n_samples, input_dim, device=device)
 
+
 def get_one_hot_labels(labels, n_classes):
     '''
     Function for creating one-hot vectors for the labels, returns a tensor of shape (?, num_classes).
@@ -47,6 +53,7 @@ def get_one_hot_labels(labels, n_classes):
         n_classes: the total number of classes in the dataset, an integer scalar
     '''
     return F.one_hot(labels, num_classes=n_classes)
+
 
 def combine_vectors(x, y):
     '''
@@ -61,6 +68,7 @@ def combine_vectors(x, y):
     '''
     combined = torch.cat((x.float(), y.float()), dim=1)
     return combined
+
 
 def get_input_dimensions(z_dim, image_shape, n_classes):
     '''
@@ -79,6 +87,7 @@ def get_input_dimensions(z_dim, image_shape, n_classes):
     discriminator_im_chan = image_shape[0] + n_classes
     return generator_input_dim, discriminator_im_chan
 
+
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
         try:
@@ -88,6 +97,9 @@ def weights_init(m):
     if isinstance(m, nn.BatchNorm2d):
         torch.nn.init.normal_(m.weight, 0.0, 0.02)
         torch.nn.init.constant_(m.bias, 0)
+    if type(m) == nn.Linear:
+        torch.nn.init.xavier_uniform_(m.weight)
+        m.bias.data.fill_(0.01)
 
 
 def compute_gradient_penalty(disc, real, fake, image_one_hot_labels, device='cpu'):
